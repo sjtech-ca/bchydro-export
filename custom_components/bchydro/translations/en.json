@@ -1,0 +1,32 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "BC Hydro Account",
+        "description": "Enter your BC Hydro credentials. A read-only secondary account is recommended.",
+        "data": {
+          "email": "Email",
+          "password": "Password"
+        }
+      }
+    },
+    "error": {
+      "invalid_auth": "Invalid credentials or login blocked",
+      "cannot_connect": "Could not connect to BC Hydro"
+    },
+    "abort": {
+      "already_configured": "BC Hydro is already configured"
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "BC Hydro Options",
+        "data": {
+          "lookback_days": "Lookback days",
+          "scan_hour": "Daily update hour (0-23)"
+        }
+      }
+    }
+  }
+}

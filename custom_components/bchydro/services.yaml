@@ -1,0 +1,18 @@
+backfill:
+  name: Backfill historical data
+  description: Fetch and import historical consumption data from BC Hydro for a date range.
+  fields:
+    from_date:
+      name: From date
+      description: Start date
+      required: true
+      example: "2025-01-01"
+      selector:
+        date:
+    to_date:
+      name: To date
+      description: End date
+      required: true
+      example: "2026-03-26"
+      selector:
+        date:

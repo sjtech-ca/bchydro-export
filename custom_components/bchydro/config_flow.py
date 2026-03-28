@@ -72,11 +72,20 @@ class BCHydroOptionsFlow(OptionsFlow):
     async def async_step_init(
         self, user_input: dict[str, Any] | None = None
     ) -> FlowResult:
+        """Show menu: settings or backfill."""
+        return self.async_show_menu(
+            step_id="init",
+            menu_options=["settings", "backfill"],
+        )
+
+    async def async_step_settings(
+        self, user_input: dict[str, Any] | None = None
+    ) -> FlowResult:
         if user_input is not None:
             return self.async_create_entry(data=user_input)
 
         return self.async_show_form(
-            step_id="init",
+            step_id="settings",
             data_schema=vol.Schema(
                 {
                     vol.Optional(
@@ -91,6 +100,45 @@ class BCHydroOptionsFlow(OptionsFlow):
                             "scan_hour", DEFAULT_SCAN_HOUR
                         ),
                     ): vol.All(int, vol.Range(min=0, max=23)),
+                }
+            ),
+        )
+
+    async def async_step_backfill(
+        self, user_input: dict[str, Any] | None = None
+    ) -> FlowResult:
+        if user_input is not None:
+            from_date = user_input["from_date"]
+            to_date = user_input["to_date"]
+
+            coordinator = self.hass.data[DOMAIN].get(self._config_entry.entry_id)
+            if coordinator is None:
+                return self.async_abort(reason="not_loaded")
+
+            try:
+                count = await coordinator.async_backfill(from_date, to_date)
+            except Exception as err:
+                return self.async_abort(
+                    reason="backfill_failed",
+                    description_placeholders={"error": str(err)},
+                )
+
+            self.hass.components.persistent_notification.async_create(
+                f"Imported {count} readings from {from_date} to {to_date}",
+                title="BC Hydro Backfill Complete",
+                notification_id="bchydro_backfill",
+            )
+            return self.async_abort(reason="backfill_complete")
+
+        default_from = date.today() - timedelta(days=365)
+        default_to = date.today() - timedelta(days=1)
+
+        return self.async_show_form(
+            step_id="backfill",
+            data_schema=vol.Schema(
+                {
+                    vol.Required("from_date", default=str(default_from)): str,
+                    vol.Required("to_date", default=str(default_to)): str,
                 }
             ),
         )

@@ -21,10 +21,45 @@
   "options": {
     "step": {
       "init": {
-        "title": "BC Hydro Options",
+        "menu_options": {
+          "settings": "Settings",
+          "backfill": "Import historical data"
+        }
+      },
+      "settings": {
+        "title": "BC Hydro Settings",
         "data": {
           "lookback_days": "Lookback days",
           "scan_hour": "Daily update hour (0-23)"
+        }
+      },
+      "backfill": {
+        "title": "Import Historical Data",
+        "description": "Fetch and import historical consumption data from BC Hydro. Dates in YYYY-MM-DD format. Large ranges are fetched in 30-day chunks automatically.",
+        "data": {
+          "from_date": "From date",
+          "to_date": "To date"
+        }
+      }
+    },
+    "abort": {
+      "backfill_complete": "Historical data import complete. Check notifications for details.",
+      "backfill_failed": "Backfill failed: {error}",
+      "not_loaded": "Integration is not loaded"
+    }
+  },
+  "services": {
+    "backfill": {
+      "name": "Backfill historical data",
+      "description": "Fetch and import historical consumption data from BC Hydro for a date range.",
+      "fields": {
+        "from_date": {
+          "name": "From date",
+          "description": "Start date (YYYY-MM-DD)"
+        },
+        "to_date": {
+          "name": "To date",
+          "description": "End date (YYYY-MM-DD)"
         }
       }
     }

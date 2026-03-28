@@ -146,3 +146,79 @@ class BCHydroCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             "cumulative_total": round(self._cumulative_total, 3),
             "last_updated": now.isoformat(),
         }
+
+    async def async_backfill(self, from_date: dt.date, to_date: dt.date) -> int:
+        """Backfill historical data for a date range.
+
+        Fetches consumption data, writes hourly and cumulative statistics,
+        and updates the persistent total. Returns the number of readings imported.
+        """
+        from zoneinfo import ZoneInfo
+
+        tz = ZoneInfo("America/Vancouver")
+
+        try:
+            client = BCHydroExport(self._email, self._password)
+            readings = await self.hass.async_add_executor_job(
+                client.fetch_consumption, from_date, to_date
+            )
+        except BCHydroAuthError as err:
+            raise ConfigEntryAuthFailed(str(err)) from err
+        except (BCHydroExportError, Exception) as err:
+            raise UpdateFailed(str(err)) from err
+
+        if not readings:
+            return 0
+
+        # Import hourly statistics
+        hourly_meta = StatisticMetaData(
+            statistic_id="bchydro:hourly_kwh",
+            name="BC Hydro Hourly Consumption",
+            source="bchydro",
+            unit_of_measurement="kWh",
+            unit_class="energy",
+            mean_type=StatisticMeanType.NONE,
+            has_sum=False,
+        )
+        hourly_stats = []
+        for r in readings:
+            start = r.timestamp.replace(tzinfo=tz).astimezone(dt.timezone.utc)
+            hourly_stats.append({"start": start, "state": float(r.kwh)})
+
+        for i in range(0, len(hourly_stats), 500):
+            async_add_external_statistics(
+                self.hass, hourly_meta, hourly_stats[i : i + 500]
+            )
+
+        # Rebuild cumulative statistics from scratch for the backfill range
+        cum_meta = StatisticMetaData(
+            statistic_id="bchydro:total_kwh",
+            name="BC Hydro Total kWh",
+            source="bchydro",
+            unit_of_measurement="kWh",
+            unit_class="energy",
+            mean_type=StatisticMeanType.NONE,
+            has_sum=True,
+        )
+        sorted_readings = sorted(readings, key=lambda r: r.timestamp)
+        total = 0.0
+        cum_stats = []
+        for r in sorted_readings:
+            total += float(r.kwh)
+            start = r.timestamp.replace(tzinfo=tz).astimezone(dt.timezone.utc)
+            cum_stats.append({"start": start, "state": total, "sum": total})
+
+        for i in range(0, len(cum_stats), 500):
+            async_add_external_statistics(
+                self.hass, cum_meta, cum_stats[i : i + 500]
+            )
+
+        # Update persistent totals
+        self._cumulative_total = total
+        self._last_processed_date = to_date.isoformat()
+        await self._async_save_totals()
+
+        # Refresh sensor data
+        await self.async_request_refresh()
+
+        return len(readings)

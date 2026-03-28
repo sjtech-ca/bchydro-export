@@ -6,7 +6,7 @@ from BC Hydro and exposes it for the Energy dashboard.
 ## Install via HACS
 
 1. Open HACS → Integrations → Custom Repositories
-2. Add `https://github.com/sammcj/bchydro-export` as an Integration
+2. Add `https://github.com/sjtech-ca/bchydro-export` as an Integration
 3. Install "BC Hydro"
 4. Restart Home Assistant
 

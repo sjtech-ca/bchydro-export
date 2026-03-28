@@ -3,7 +3,7 @@
 ## Development setup
 
 ```bash
-git clone https://github.com/sammcj/bchydro-export.git
+git clone https://github.com/sjtech-ca/bchydro-export.git
 cd bchydro-export
 python -m venv .venv
 source .venv/bin/activate

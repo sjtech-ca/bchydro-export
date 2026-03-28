@@ -1,10 +1,10 @@
 {
   "domain": "bchydro",
   "name": "BC Hydro",
-  "codeowners": ["@sammcj"],
+  "codeowners": ["@sjtech-ca"],
   "config_flow": true,
   "dependencies": ["recorder"],
-  "documentation": "https://github.com/sammcj/bchydro-export",
+  "documentation": "https://github.com/sjtech-ca/bchydro-export",
   "iot_class": "cloud_polling",
   "requirements": ["bchydro-export==1.0.0"],
   "version": "1.0.0"

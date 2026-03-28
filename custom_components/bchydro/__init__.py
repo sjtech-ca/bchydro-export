@@ -39,9 +39,11 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         from_date = call.data["from_date"]
         to_date = call.data["to_date"]
         # Use the first (only) coordinator
+        from homeassistant.components.persistent_notification import async_create
         for coord in hass.data[DOMAIN].values():
             count = await coord.async_backfill(from_date, to_date)
-            hass.components.persistent_notification.async_create(
+            async_create(
+                hass,
                 f"Imported {count} readings from {from_date} to {to_date}",
                 title="BC Hydro Backfill Complete",
                 notification_id="bchydro_backfill",

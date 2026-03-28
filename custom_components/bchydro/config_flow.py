@@ -129,12 +129,10 @@ class BCHydroOptionsFlow(OptionsFlow):
                     description_placeholders={"error": str(err)},
                 )
 
-            self.hass.components.persistent_notification.async_create(
-                f"Imported {count} readings from {from_date} to {to_date}",
-                title="BC Hydro Backfill Complete",
-                notification_id="bchydro_backfill",
+            return self.async_abort(
+                reason="backfill_complete",
+                description_placeholders={"count": str(count), "from": str(from_date), "to": str(to_date)},
             )
-            return self.async_abort(reason="backfill_complete")
 
         from homeassistant.helpers.selector import (
             DateSelector,

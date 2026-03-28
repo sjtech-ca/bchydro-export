@@ -43,7 +43,7 @@
       }
     },
     "abort": {
-      "backfill_complete": "Historical data import complete. Check notifications for details.",
+      "backfill_complete": "Imported {count} readings from {from} to {to}.",
       "backfill_failed": "Backfill failed: {error}",
       "not_loaded": "Integration is not loaded"
     }

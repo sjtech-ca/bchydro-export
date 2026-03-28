@@ -111,6 +111,12 @@ class BCHydroOptionsFlow(OptionsFlow):
             from_date = user_input["from_date"]
             to_date = user_input["to_date"]
 
+            # Selector returns date objects, but handle strings too
+            if isinstance(from_date, str):
+                from_date = date.fromisoformat(from_date)
+            if isinstance(to_date, str):
+                to_date = date.fromisoformat(to_date)
+
             coordinator = self.hass.data[DOMAIN].get(self._config_entry.entry_id)
             if coordinator is None:
                 return self.async_abort(reason="not_loaded")
@@ -130,15 +136,24 @@ class BCHydroOptionsFlow(OptionsFlow):
             )
             return self.async_abort(reason="backfill_complete")
 
-        default_from = date.today() - timedelta(days=365)
-        default_to = date.today() - timedelta(days=1)
+        from homeassistant.helpers.selector import (
+            DateSelector,
+            DateSelectorConfig,
+        )
+
+        default_from = str(date.today() - timedelta(days=365))
+        default_to = str(date.today() - timedelta(days=1))
 
         return self.async_show_form(
             step_id="backfill",
             data_schema=vol.Schema(
                 {
-                    vol.Required("from_date", default=str(default_from)): str,
-                    vol.Required("to_date", default=str(default_to)): str,
+                    vol.Required("from_date", default=default_from): DateSelector(
+                        DateSelectorConfig()
+                    ),
+                    vol.Required("to_date", default=default_to): DateSelector(
+                        DateSelectorConfig()
+                    ),
                 }
             ),
         )

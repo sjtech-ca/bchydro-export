@@ -1,0 +1,14 @@
+[project]
+name = "bchydro-export-monorepo"
+version = "0.0.0"
+requires-python = ">=3.10"
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0",
+    "pytest-mock>=3.12",
+    "requests-mock>=1.12",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["lib/tests", "tests"]

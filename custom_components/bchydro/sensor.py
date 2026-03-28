@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from datetime import datetime
 from typing import Any
 
 from homeassistant.components.sensor import (
@@ -81,7 +82,10 @@ class BCHydroLastUpdatedSensor(CoordinatorEntity[BCHydroCoordinator], SensorEnti
     _attr_device_class = SensorDeviceClass.TIMESTAMP
 
     @property
-    def native_value(self) -> str | None:
+    def native_value(self) -> datetime | None:
         if self.coordinator.data is None:
             return None
-        return self.coordinator.data.get("last_updated")
+        val = self.coordinator.data.get("last_updated")
+        if val is None:
+            return None
+        return datetime.fromisoformat(val)

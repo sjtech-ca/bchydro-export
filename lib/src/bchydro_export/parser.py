@@ -47,7 +47,10 @@ def parse_csv(csv_text: str) -> list[ConsumptionReading]:
             continue
 
         estimated = (row.get("Estimated Usage") or "").strip().upper() in _ESTIMATED_TRUTHY
-        timestamp = dt.datetime.strptime(raw_ts, "%Y-%m-%d %H:%M")
+        try:
+            timestamp = dt.datetime.strptime(raw_ts, "%Y-%m-%d %H:%M")
+        except ValueError:
+            continue
 
         readings.append(ConsumptionReading(timestamp=timestamp, kwh=kwh, estimated=estimated))
 

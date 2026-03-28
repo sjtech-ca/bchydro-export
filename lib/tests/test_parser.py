@@ -48,3 +48,14 @@ def test_parse_csv_header_only():
     header = csv_text.splitlines()[0]
     readings = parse_csv(header)
     assert readings == []
+
+
+def test_parse_csv_malformed_timestamp_skipped():
+    csv_text = (
+        '"Account Holder","Account Number","Meter Number","Interval Start Date/Time",'
+        '"Time of Day Period","Inflow (kWh)","Outflow (kWh)","Net Consumption (kWh)",'
+        '"Peak Demand (kW)","Power Factor (%)","Estimated Usage","Service Address","City"\n'
+        '"TEST","\'000","\'123","BAD-TIMESTAMP","N/A","0.5","N/A","0.5","N/A","N/A","","X","Y"'
+    )
+    readings = parse_csv(csv_text)
+    assert readings == []

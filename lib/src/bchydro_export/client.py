@@ -121,7 +121,7 @@ class BCHydroExport:
         token: str,
         from_date: date,
         to_date: date,
-    ) -> str:
+    ) -> tuple[str, str]:
         """Queue an export request and download the resulting CSV."""
         from_s = _portal_date(from_date)
         to_s = _portal_date(to_date)
@@ -177,9 +177,11 @@ class BCHydroExport:
         download_resp.raise_for_status()
 
         try:
-            return download_resp.content.decode("utf-8")
+            csv_text = download_resp.content.decode("utf-8")
         except UnicodeDecodeError:
-            return download_resp.content.decode("ISO-8859-1", errors="replace")
+            csv_text = download_resp.content.decode("ISO-8859-1", errors="replace")
+
+        return csv_text, token
 
     def fetch_csv(self, from_date: date, to_date: date) -> str:
         """Fetch raw CSV text for a date range.
@@ -192,11 +194,18 @@ class BCHydroExport:
 
         while chunk_start <= to_date:
             chunk_end = min(to_date, chunk_start + timedelta(days=_CHUNK_DAYS - 1))
-            csv_text = self._export_chunk(session, token, chunk_start, chunk_end)
+            csv_text, token = self._export_chunk(session, token, chunk_start, chunk_end)
             chunks.append(csv_text)
             chunk_start = chunk_end + timedelta(days=1)
             if chunk_start <= to_date:
                 time.sleep(_CHUNK_PAUSE)
+
+        if len(chunks) > 1:
+            # Remove header row from subsequent chunks
+            for i in range(1, len(chunks)):
+                lines = chunks[i].splitlines()
+                if len(lines) > 1:
+                    chunks[i] = "\n".join(lines[1:])
 
         return "\n".join(chunks)
 

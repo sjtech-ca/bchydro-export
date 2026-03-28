@@ -3,7 +3,13 @@
 from datetime import date
 from pathlib import Path
 
+import pytest
+import requests_mock as rm
+
+from bchydro_export import BCHydroExport
 from bchydro_export.client import _extract_bchydroparam, _portal_date
+from bchydro_export.exceptions import BCHydroAuthError, BCHydroExportError
+from bchydro_export.parser import ConsumptionReading
 
 FIXTURES = Path(__file__).parent / "fixtures"
 
@@ -36,12 +42,6 @@ class TestPortalDate:
         assert _portal_date(date(2025, 12, 25)) == "Dec 25, 2025"
 
 
-import requests_mock as rm
-
-from bchydro_export import BCHydroExport
-from bchydro_export.exceptions import BCHydroAuthError, BCHydroExportError
-from bchydro_export.parser import ConsumptionReading
-
 
 class TestBCHydroExportLogin:
     def test_successful_login_extracts_token(self):
@@ -57,7 +57,6 @@ class TestBCHydroExportLogin:
         with rm.Mocker() as m:
             m.post("https://app.bchydro.com/sso/UI/Login", text=html)
             client = BCHydroExport("bad@example.com", "wrong")
-            import pytest
             with pytest.raises(BCHydroAuthError):
                 client._login()
 
@@ -122,6 +121,5 @@ class TestBCHydroExportFetch:
             m.get(rm.ANY, text=centre_html)
             m.post("https://app.bchydro.com/datadownload/web/validate-download-request.html", status_code=500)
             client = BCHydroExport("test@example.com", "pw")
-            import pytest
             with pytest.raises(BCHydroExportError):
                 client.fetch_csv(date(2026, 3, 1), date(2026, 3, 5))

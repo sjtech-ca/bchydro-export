@@ -1,0 +1,7 @@
+"Account Holder","Account Number","Meter Number","Interval Start Date/Time","Time of Day Period","Inflow (kWh)","Outflow (kWh)","Net Consumption (kWh)","Peak Demand (kW)","Power Factor (%)","Estimated Usage","Service Address","City"
+"TEST USER","'000012345678","'1234567","2026-03-01 00:00","N/A","0.45","N/A","0.45","N/A","N/A","","123 TEST ST","VANCOUVER"
+"TEST USER","'000012345678","'1234567","2026-03-01 01:00","N/A","0.16","N/A","0.16","N/A","N/A","","123 TEST ST","VANCOUVER"
+"TEST USER","'000012345678","'1234567","2026-03-01 02:00","N/A","0.08","N/A","0.08","N/A","N/A","X","123 TEST ST","VANCOUVER"
+"TEST USER","'000012345678","'1234567","2026-03-01 03:00","N/A","","N/A","","N/A","N/A","","123 TEST ST","VANCOUVER"
+"TEST USER","'000012345678","'1234567","","N/A","0.10","N/A","0.10","N/A","N/A","","123 TEST ST","VANCOUVER"
+"TEST USER","'000012345678","'1234567","2026-03-01 05:00","N/A","1.23","N/A","1.23","N/A","N/A","","123 TEST ST","VANCOUVER"

@@ -18,8 +18,8 @@ from homeassistant.components.recorder.models.statistics import (
 )
 from homeassistant.components.recorder.statistics import async_add_external_statistics
 
-from bchydro_export import BCHydroExport
-from bchydro_export.exceptions import BCHydroAuthError, BCHydroExportError
+from .client import BCHydroExport
+from .exceptions import BCHydroAuthError, BCHydroExportError
 
 from .const import DEFAULT_LOOKBACK_DAYS, DOMAIN
 

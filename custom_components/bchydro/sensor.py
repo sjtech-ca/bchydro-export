@@ -43,7 +43,7 @@ class BCHydroYesterdaySensor(CoordinatorEntity[BCHydroCoordinator], SensorEntity
     _attr_unique_id = "bchydro_yesterday_consumption"
     _attr_native_unit_of_measurement = UnitOfEnergy.KILO_WATT_HOUR
     _attr_device_class = SensorDeviceClass.ENERGY
-    _attr_state_class = SensorStateClass.MEASUREMENT
+    _attr_state_class = SensorStateClass.TOTAL
 
     @property
     def native_value(self) -> float | None:

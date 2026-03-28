@@ -11,8 +11,8 @@ from homeassistant.config_entries import ConfigEntry, ConfigFlow, OptionsFlow
 from homeassistant.core import callback
 from homeassistant.data_entry_flow import FlowResult
 
-from bchydro_export import BCHydroExport
-from bchydro_export.exceptions import BCHydroAuthError
+from .client import BCHydroExport
+from .exceptions import BCHydroAuthError
 
 from .const import DEFAULT_LOOKBACK_DAYS, DEFAULT_SCAN_HOUR, DOMAIN
 

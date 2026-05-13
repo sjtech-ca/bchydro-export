@@ -235,10 +235,12 @@ class BCHydroCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                 self.hass, cum_meta, cum_stats[i : i + 500]
             )
 
-        # Update persistent totals
-        self._cumulative_total = total
-        self._last_processed_date = to_date.isoformat()
-        await self._async_save_totals()
+        # Persisted cumulative_total tracks the running total since install
+        # and is maintained by the daily update path. Backfill writes external
+        # statistics directly (bchydro:total_kwh sum starts at 0 over the
+        # backfilled range), so we intentionally do NOT clobber the running
+        # total here — that would reset the BCHydroTotalSensor to the range
+        # subtotal and lose life-of-install accumulation.
 
         # Refresh sensor data
         await self.async_request_refresh()

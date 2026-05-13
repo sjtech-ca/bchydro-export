@@ -29,6 +29,25 @@ STORAGE_VERSION = 1
 STORAGE_KEY = f"{DOMAIN}.totals"
 
 
+def _to_utc_starts(readings, tz):
+    """Convert naive local timestamps to UTC, disambiguating DST fall-back.
+
+    BC Hydro's CSV uses naive local time and does not flag the repeated
+    01:00-01:59 hour on fall-back day. We detect duplicate consecutive
+    local timestamps in the sorted reading list and mark the second
+    occurrence with fold=1 so it maps to a distinct UTC instant.
+    """
+    starts: list[dt.datetime] = []
+    seen_local: dict[dt.datetime, int] = {}
+    for r in readings:
+        local = r.timestamp
+        fold = 1 if seen_local.get(local) else 0
+        seen_local[local] = seen_local.get(local, 0) + 1
+        aware = local.replace(tzinfo=tz, fold=fold)
+        starts.append(aware.astimezone(dt.timezone.utc))
+    return starts
+
+
 class BCHydroCoordinator(DataUpdateCoordinator[dict[str, Any]]):
     """Coordinator that fetches BC Hydro data daily."""
 
@@ -92,10 +111,12 @@ class BCHydroCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             mean_type=StatisticMeanType.NONE,
             has_sum=False,
         )
-        hourly_stats = []
-        for r in readings:
-            start = r.timestamp.replace(tzinfo=tz).astimezone(dt.timezone.utc)
-            hourly_stats.append({"start": start, "state": float(r.kwh)})
+        sorted_all = sorted(readings, key=lambda r: r.timestamp)
+        starts_all = _to_utc_starts(sorted_all, tz)
+        hourly_stats = [
+            {"start": s, "state": float(r.kwh)}
+            for s, r in zip(starts_all, sorted_all)
+        ]
 
         for i in range(0, len(hourly_stats), 500):
             async_add_external_statistics(
@@ -128,9 +149,10 @@ class BCHydroCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             )
             total = self._cumulative_total - yesterday_kwh
             cum_stats = []
-            for r in sorted(yesterday_readings, key=lambda r: r.timestamp):
+            sorted_yesterday = sorted(yesterday_readings, key=lambda r: r.timestamp)
+            y_starts = _to_utc_starts(sorted_yesterday, tz)
+            for start, r in zip(y_starts, sorted_yesterday):
                 total += float(r.kwh)
-                start = r.timestamp.replace(tzinfo=tz).astimezone(dt.timezone.utc)
                 cum_stats.append({"start": start, "state": total, "sum": total})
 
             for i in range(0, len(cum_stats), 500):
@@ -180,10 +202,12 @@ class BCHydroCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             mean_type=StatisticMeanType.NONE,
             has_sum=False,
         )
-        hourly_stats = []
-        for r in readings:
-            start = r.timestamp.replace(tzinfo=tz).astimezone(dt.timezone.utc)
-            hourly_stats.append({"start": start, "state": float(r.kwh)})
+        sorted_readings = sorted(readings, key=lambda r: r.timestamp)
+        starts = _to_utc_starts(sorted_readings, tz)
+        hourly_stats = [
+            {"start": s, "state": float(r.kwh)}
+            for s, r in zip(starts, sorted_readings)
+        ]
 
         for i in range(0, len(hourly_stats), 500):
             async_add_external_statistics(
@@ -200,12 +224,10 @@ class BCHydroCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             mean_type=StatisticMeanType.NONE,
             has_sum=True,
         )
-        sorted_readings = sorted(readings, key=lambda r: r.timestamp)
         total = 0.0
         cum_stats = []
-        for r in sorted_readings:
+        for start, r in zip(starts, sorted_readings):
             total += float(r.kwh)
-            start = r.timestamp.replace(tzinfo=tz).astimezone(dt.timezone.utc)
             cum_stats.append({"start": start, "state": total, "sum": total})
 
         for i in range(0, len(cum_stats), 500):
